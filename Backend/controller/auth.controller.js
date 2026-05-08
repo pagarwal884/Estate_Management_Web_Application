@@ -1,7 +1,8 @@
 import User from "../models/usermodels.js";
 import sendEmail from "../utils/sendEmails.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+import crypto from 'crypto'
 
 // Register
 export const Register = async (req, res) => {
@@ -230,3 +231,34 @@ export const forgotPassword = async (req, res) => {
         res.status(500).json({ message: err.message, success: false });
     }
 };
+
+// now to reset it(password)
+export const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        const resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex")
+
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        })
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or Expire Password", success: false })
+        }
+
+        user.password = await bcrypt.hash(password, 10)
+        user.resetPassword = undefined
+        user.resetPasswordExpire = undefined
+
+        await user.save()
+        res.json({
+            message: "Password updated Successfully",
+            success: true
+        })
+    } catch (err) {
+        res.status(500).json({ message: err.message, success: false });
+    }
+}
