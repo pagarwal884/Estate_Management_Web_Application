@@ -33,7 +33,7 @@ export const protect = async (req, res, next) => {
         next()
 
     } catch (err) {
-        res.status(401).json({.
+        res.status(401).json({
             success: false,
             message: "Token Inavlid"
         })
