@@ -1,0 +1,16 @@
+import express from "express"
+import { forgotPassword, getMe, login, Register, resetPassword, verifyEmail } from "../controller/auth.controller.js"
+import { protect } from "../middlewares/auth.middleware.js"
+
+const authRouter = express.Router()
+
+authRouter.post("/register", Register)
+authRouter.post("/login", login)
+
+authRouter.get("/me", protect, getMe)
+authRouter.post("/verify-email", verifyEmail)
+
+authRouter.post("/forgot-password", forgotPassword)
+authRouter.post("/reset-password/:token", resetPassword)
+
+export default authRouter
