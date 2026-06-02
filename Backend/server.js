@@ -5,6 +5,7 @@ import http from 'http'
 import { connect } from 'http2';
 import { connectdb } from './config/db.js';
 import authRouter from './routes/auth.routes.js';
+import userRouter from './routes/user.routes.js';
 
 const app = express()
 const PORT = 5000
@@ -18,6 +19,7 @@ app.use(express.json())
 
 // Routes
 app.use("/api/auth", authRouter)
+app.use("/api/user", userRouter)
 
 app.get("/", (req,res)=>{
     res.send("API WORKING")
