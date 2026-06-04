@@ -40,6 +40,11 @@ export const addproperty = async (req, res) => {
                     })()
                 : [],
         });
+
+        res.json({
+            success: true,
+            property
+        })
     }
     catch (error) {
         console.error("ADD_PROPERTY_ERROR:", error);
@@ -49,4 +54,22 @@ export const addproperty = async (req, res) => {
 
         });
     }
-} 
+}
+
+// to get my property
+export const getMyProperties = async (req, res) => {
+    try {
+        const properties = await Property.find({
+            seller: req.user._id
+        })
+        res.json({
+            success: true,
+            properties
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
