@@ -308,3 +308,42 @@ export const getAllProperties = async (req, res) => {
         });
     }
 };
+
+// to get property details
+export const getPropertyDetails = async (req, res) => {
+    try {
+
+        // Find property by ID
+        const property = await Property.findById(req.params.id)
+            .populate("seller", "name email phone profilePic");
+
+        // Check if property exists
+        if (!property) {
+            return res.status(404).json({
+                success: false,
+                message: "Property not found!"
+            });
+        }
+
+        // unique view tracking by id
+        let visitorId = req.ip
+        const authHeader = req.headers.authorization
+        if ()
+
+        // Send response
+        res.json({
+            success: true,
+            property,
+            inquiries
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: "Internal server error while fetching property details",
+            error: error.message
+        });
+
+    }
+};
