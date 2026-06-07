@@ -414,3 +414,26 @@ export const getSellerDashboard = async (req, res) => {
 }
 
 // get property count by type
+export const getPropertyCount = async (req, res) => {
+    try {
+        const counts = await Property.aggregate([
+            { $match: { status: "sale" } },
+            { $group: { _id: "$propertyType", count: { $sum: 1 } } }
+        ]);
+
+        const formattedCounts = counts.reduce((acc, curr) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {});
+        res.json({
+            success: true,
+            counts: formattedCounts
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal error while fetching counts",
+            error: error.message
+        });
+    }
+}
