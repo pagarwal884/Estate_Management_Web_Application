@@ -6,6 +6,7 @@ import { connect } from 'http2';
 import { connectdb } from './config/db.js';
 import authRouter from './routes/auth.routes.js';
 import userRouter from './routes/user.routes.js';
+import propertyRouter from './routes/property.routes.js';
 
 const app = express()
 const PORT = 5000
@@ -20,6 +21,7 @@ app.use(express.json())
 // Routes
 app.use("/api/auth", authRouter)
 app.use("/api/user", userRouter)
+app.use("/api/property", propertyRouter)
 
 app.get("/", (req,res)=>{
     res.send("API WORKING")
