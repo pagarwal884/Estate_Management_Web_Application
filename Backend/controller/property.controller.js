@@ -2,6 +2,7 @@ import Property from "../models/property.model.js";
 import Inquiry from "../models/inquiry.model.js";
 import { UploadToCloudinary } from "../utils/uploadTocloudinary.js";
 import cloudinary from "../config/cloudinary.js";
+import jwt from "jsonwebtoken"
 
 
 // Add a property
@@ -328,22 +329,88 @@ export const getPropertyDetails = async (req, res) => {
         // unique view tracking by id
         let visitorId = req.ip
         const authHeader = req.headers.authorization
-        if ()
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+            try {
+                const token = authHeader.split(" ")[1];
+                const decode = jwt.verify(token, process.env.JWT_SECRET)
+                visitorId = decoded.id;
+            } catch (error) {
+                // ignore
+            }
+        }
+
+        const isSellerChecking = visitorId === property.seller._id.toString();
+        if (!isSellerChecking && !property.viewedBy.includes(visitorId)) {
+            property.views += 1;
+            property.viewedBy.push(visitorId);
+            await property.save()
+        }
+
+        const similarProperties = await Property.find({
+            _id: { $ne: property._id },
+            city: property.city,
+            propertyType: property.propertyType,
+            status: property.status,
+        })
+            .limit(4)
+            .select("title price images city area propertyType bhk areaSize status")
 
         // Send response
         res.json({
             success: true,
             property,
-            inquiries
+            similarProperties
         });
 
     } catch (error) {
-
         res.status(500).json({
             success: false,
-            message: "Internal server error while fetching property details",
             error: error.message
         });
 
     }
 };
+
+// seller dashboard
+export const getSellerDashboard = async (req, res) => {
+    try {
+        const sellerId = req.user._id;
+        const totalProperties = await Property.countDocuments({ seller: sellerId })
+        const activeListing = await Property.countDocuments({
+            seller: sellerId,
+            status: "sale"
+        })
+        const soldProperty = await Property.countDocuments({
+            seller: sellerId,
+            status: "sold"
+        })
+        const totalInquiry = await Property.countDocuments({
+            seller: sellerId
+        })
+        // Calculate total views for all properties
+        const viewData = await Property.aggregate([
+            { $match: { seller: sellerId } },
+            {
+                $group: { _id: null, totalViews: { $sum: "$views" } }
+            }])
+        const totalViews = viewData.length > 0 ? viewData[0].totalViews : 0;
+
+        res.json({
+            success: true,
+            stats: {
+                totalProperties,
+                totalInquiry,
+                totalViews,
+                soldProperty,
+                activeListing,
+            }
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+// get property count by type
