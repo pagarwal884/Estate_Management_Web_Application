@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Property from "./property.model";
+import Property from "./property.model.js";
 
 const inquirySchema = new mongoose.Schema({
     Property: {
