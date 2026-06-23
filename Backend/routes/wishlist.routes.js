@@ -1,10 +1,10 @@
 import express from "express"
 import {protect} from "../middlewares/auth.middleware.js"
-import {addWishlist, getWishlist, removewishlist} from "../controller/wishlist.controller.js"
+import {addwishlist, getWishlist, removewishlist} from "../controller/wishlist.controller.js"
 
 const wishlistRouter = express.Router()
 
-wishlistRouter.post("/:propertyId", protect, addWishlist)
+wishlistRouter.post("/:propertyId", protect, addwishlist)
 wishlistRouter.get("/", protect, getWishlist)
 
 wishlistRouter.delete("/:propertId", protect, removewishlist)
