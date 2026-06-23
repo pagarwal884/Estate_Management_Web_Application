@@ -81,7 +81,7 @@ export const deleteProperty = async (req, res) => {
     }
 }
 
-export const getInquiry = async (req, res) => {
+export const getAllInquiry = async (req, res) => {
     try {
         const inquiry = await Inquiry.find().populate("buyer", "name email")
             .populate("seller", "name email")
@@ -147,8 +147,26 @@ export const getPendingSeller = async (req, res) => {
 
 export const approveSeller = async (req, res) => {
     try {
-        
-    } catch (error) {
-        
+        const seller = await User.findById(req.param.id)
+
+        if(!seller || seller.role !== "seller"){
+            return res.status(404).json({
+                success: false,
+                message: "Seller not found"
+            })
+        }
+
+        seller.isApproved = true
+        await seller.save()
+
+        res.json({
+            success: true,
+            message: "Seller is approved successfully",
+            seller
+        })
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        })
     }
 }
