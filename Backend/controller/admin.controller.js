@@ -19,7 +19,7 @@ export const getAllUsers = async (req, res) => {
 
 export const blockUser = async (req, res) => {
     try {
-        const user = await User.findById(req.param.id)
+        const user = await User.findById(req.params.id)
         user.isBlocked = !user.isBlocked
         await user.save()
 
@@ -38,7 +38,7 @@ export const blockUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
     try {
-        await User.findByIdAndDelete(req.param.id)
+        await User.findByIdAndDelete(req.params.id)
         res.json({
             success: true,
             message: "User deleted Successfully"
@@ -68,7 +68,7 @@ export const getAllProperties = async (req, res) => {
 
 export const deleteProperty = async (req, res) => {
     try {
-        await Property.findByIdAndDelete(req.param.id)
+        await Property.findByIdAndDelete(req.params.id)
 
         res.json({
             success: true,
@@ -147,7 +147,7 @@ export const getPendingSeller = async (req, res) => {
 
 export const approveSeller = async (req, res) => {
     try {
-        const seller = await User.findById(req.param.id)
+        const seller = await User.findById(req.params.id)
 
         if(!seller || seller.role !== "seller"){
             return res.status(404).json({
