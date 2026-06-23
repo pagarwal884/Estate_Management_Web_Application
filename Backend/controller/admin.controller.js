@@ -51,7 +51,7 @@ export const deleteUser = async (req, res) => {
     }
 }
 
-export const viewAllProperties = async (req, res) => {
+export const getAllProperties = async (req, res) => {
     try {
         const properties = await Property.find().populate("seller", "name email")
         res.json({
