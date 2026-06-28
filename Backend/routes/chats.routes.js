@@ -1,5 +1,5 @@
 import express from "express";
-import Chat from "../models/chat.model.js";
+import Chat from "../models/chat.models.js";
 import { protect } from "../middlewares/auth.middleware.js";
 
 const chatRouter = express.Router();
@@ -117,6 +117,81 @@ chatRouter.get("/user", async(req, res) => {
 
         res.json({chats})
     } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+})
+
+// to get chat messages
+chatRouter.get("/:chatId", async(req, res) => {
+    try {
+        const chat = await Chat.findById(req.params.chatId).populate("messages.sender", "name email profilePic")
+
+        if(!chat) return res.status(404).json({
+            message: "Chat not found"
+        })
+
+        const userId = req.user.id
+        if(chat.buyer.toString() !== userId && chat.seller.toString() !== userId){
+            return res.status(403).json({
+                message: "You are not a participant of this chat"
+            })
+        }
+        res.json({chat})
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+})
+
+// to delete an entire chat
+chatRouter.delete("/:chatId", async(req, res) => {
+    try {
+        const userId = req.user._id
+        const chat = await Chat.findById(req.params.chatId)
+        if(!chat) return res.status(404).json({
+            message: "Chat not found"
+        })
+        if(chat.buyer.toString() !== userId.toString() && chat.seller.toString() !== userId.toString()){
+            return res.status(403).json({
+                message: "You are not a participant of this chat"
+            })
+        }
+        await Chat.findByIdAndDelete(req.params.chatId)
+        res.json({message: "Chat deleted successfully"})
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }               
+})
+
+// to delete a specific message from a chat
+chatRouter.delete("/:chatId/message/:messageId", async(req, res) => {
+    try {
+        const userId = req.user._id 
+        const chat = await Chat.findById(req.params.chatId)
+        if(!chat) return res.status(404).json({
+            message: "Chat not found"
+        })
+
+        const message = chat.messages.id(req.params.messageId)
+        if(!message) return res.status(404).json({
+            message: "Message not found"
+        })
+
+        if(message.sender.toString() !== userId.toString()){
+            return res.status(403).json({
+                message: "You can only delete your own messages"
+            })
+        }
+        chat.messages.remove(req.params.messageId)  
+        await chat.save()
+        res.json({message: "Message deleted successfully"})
+    }   
+    catch (error) {
         res.status(500).json({
             message: error.message
         })
