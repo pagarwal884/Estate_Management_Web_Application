@@ -66,5 +66,61 @@ chatRouter.post("/start", async (req, res) => {
     }
 });
 
+// to send message
+chatRouter.post("/send", async(req, res) => {
+    try {
+        const{chatId, text, image} = req.body
+        const userId = req.user.id
+        
+        const chat = await Chat.findById(chatId)
+        if(!chat) return res.status(404).json({
+            message: "Chat not found"
+        })
+
+        if(chat.buyer.toString() !== userId && chat.seller.toString() !== userId){
+            return res.status(403).json({
+                message: "You are not a participant of this chat"
+            })
+        }
+
+        const newMessage = {
+            sender: userId,
+            text,
+            image,
+            timestamp: new Date()
+        }
+        chat.messages.push(newMessage)
+        await chat.save()
+        const savedMessage = chat.messages[chat.messages.length - 1]
+        res.json({chat, newMessage: savedMessage})
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })  
+    }
+})
+
+// to get chat for user
+chatRouter.get("/user", async(req, res) => {
+    try {
+        const userId = req.user.id
+        const chats = await Chat.find({
+            $or: [
+                { buyer: userId },
+                { seller: userId }
+            ]
+        })
+        .populate("buyer", "name email profilePic")
+        .populate("seller", "name email profilePic")
+        .populate("property", "title price images")
+        .sort({ updatedAt: -1 })
+
+        res.json({chats})
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+})
 
 export default chatRouter;
